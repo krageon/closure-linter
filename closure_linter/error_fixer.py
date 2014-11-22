@@ -106,17 +106,17 @@ class ErrorFixer(errorhandler.ErrorHandler):
     if code == errors.JSDOC_PREFER_QUESTION_TO_PIPE_NULL:
       iterator = token.attached_object.type_start_token
       if iterator.type == Type.DOC_START_BRACE or iterator.string.isspace():
-        iterator = iterator.next
+        iterator = iterator.__next__
 
       leading_space = len(iterator.string) - len(iterator.string.lstrip())
       iterator.string = '%s?%s' % (' ' * leading_space,
                                    iterator.string.lstrip())
 
       # Cover the no outer brace case where the end token is part of the type.
-      while iterator and iterator != token.attached_object.type_end_token.next:
+      while iterator and iterator != token.attached_object.type_end_token.__next__:
         iterator.string = iterator.string.replace(
             'null|', '').replace('|null', '')
-        iterator = iterator.next
+        iterator = iterator.__next__
 
       # Create a new flag object with updated type info.
       token.attached_object = javascriptstatetracker.JsDocFlag(token)
@@ -138,7 +138,7 @@ class ErrorFixer(errorhandler.ErrorHandler):
     elif code == errors.JSDOC_MISSING_VAR_ARGS_TYPE:
       iterator = token.attached_object.type_start_token
       if iterator.type == Type.DOC_START_BRACE or iterator.string.isspace():
-        iterator = iterator.next
+        iterator = iterator.__next__
 
       starting_space = len(iterator.string) - len(iterator.string.lstrip())
       iterator.string = '%s...%s' % (' ' * starting_space,
@@ -213,7 +213,7 @@ class ErrorFixer(errorhandler.ErrorHandler):
         num_lines *= -1
         should_delete = True
 
-      for unused_i in xrange(1, num_lines + 1):
+      for unused_i in range(1, num_lines + 1):
         if should_delete:
           # TODO(user): DeleteToken should update line numbers.
           self._DeleteToken(token.previous)
@@ -302,7 +302,7 @@ class ErrorFixer(errorhandler.ErrorHandler):
     elif code == errors.UNNECESSARY_BRACES_AROUND_INHERIT_DOC:
       if token.previous.string == '{' and token.next.string == '}':
         self._DeleteToken(token.previous)
-        self._DeleteToken(token.next)
+        self._DeleteToken(token.__next__)
         self._AddFix([token])
 
     elif code == errors.INVALID_AUTHOR_TAG_DESCRIPTION:
@@ -347,14 +347,14 @@ class ErrorFixer(errorhandler.ErrorHandler):
       if (token.type == Type.END_BLOCK and
           token.next.type == Type.END_PAREN and
           token.next.next.type == Type.SEMICOLON):
-        current_token = token.next.next.next
+        current_token = token.next.next.__next__
         removed_tokens = []
         while current_token and current_token.line_number == token.line_number:
           if current_token.IsAnyType(Type.WHITESPACE,
                                      Type.START_SINGLE_LINE_COMMENT,
                                      Type.COMMENT):
             removed_tokens.append(current_token)
-            current_token = current_token.next
+            current_token = current_token.__next__
           else:
             return
 
@@ -370,7 +370,7 @@ class ErrorFixer(errorhandler.ErrorHandler):
         insertion_tokens = [whitespace_token, start_comment_token,
                             comment_token]
 
-        tokenutil.InsertTokensAfter(insertion_tokens, token.next.next)
+        tokenutil.InsertTokensAfter(insertion_tokens, token.next.__next__)
         self._AddFix(removed_tokens + insertion_tokens)
 
     elif code in [errors.EXTRA_GOOG_PROVIDE, errors.EXTRA_GOOG_REQUIRE]:
@@ -397,7 +397,7 @@ class ErrorFixer(errorhandler.ErrorHandler):
       # blank line first.
       if need_blank_line and is_require:
         tokenutil.InsertBlankLineAfter(insert_location)
-        insert_location = insert_location.next
+        insert_location = insert_location.__next__
 
       for missing_namespace in missing_namespaces:
         new_tokens = self._GetNewRequireOrProvideTokens(
@@ -447,7 +447,7 @@ class ErrorFixer(errorhandler.ErrorHandler):
       token: The token to delete.
     """
     if token == self._file_token:
-      self._file_token = token.next
+      self._file_token = token.__next__
 
     tokenutil.DeleteToken(token)
 
@@ -462,8 +462,8 @@ class ErrorFixer(errorhandler.ErrorHandler):
       token_count: The total number of tokens to delete.
     """
     if token == self._file_token:
-      for unused_i in xrange(token_count):
-        self._file_token = self._file_token.next
+      for unused_i in range(token_count):
+        self._file_token = self._file_token.__next__
 
     tokenutil.DeleteTokens(token, token_count)
 
@@ -486,7 +486,7 @@ class ErrorFixer(errorhandler.ErrorHandler):
 
       f = self._external_file
       if not f:
-        print 'Fixed %d errors in %s' % (self._file_fix_count, self._file_name)
+        print('Fixed %d errors in %s' % (self._file_fix_count, self._file_name))
         f = open(self._file_name, 'w')
 
       token = self._file_token
@@ -513,12 +513,12 @@ class ErrorFixer(errorhandler.ErrorHandler):
             f.write(original_lines[token.orig_line_number - 1])
           line = ''
           if char_count > 80 and token.line_number in self._file_changed_lines:
-            print 'WARNING: Line %d of %s is now longer than 80 characters.' % (
-                token.line_number, self._file_name)
+            print('WARNING: Line %d of %s is now longer than 80 characters.' % (
+                token.line_number, self._file_name))
 
           char_count = 0
 
-        token = token.next
+        token = token.__next__
 
       if not self._external_file:
         # Close the file if we created it

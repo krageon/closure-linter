@@ -197,7 +197,7 @@ class IndentationRules(object):
     if is_first and not_binary_operator and not_dot and token.type not in (
         Type.COMMENT, Type.DOC_PREFIX, Type.STRING_TEXT):
       if flags.FLAGS.debug_indentation:
-        print 'Line #%d: stack %r' % (token.line_number, stack)
+        print('Line #%d: stack %r' % (token.line_number, stack))
 
       # Ignore lines that start in JsDoc since we don't check them properly yet.
       # TODO(robbyw): Support checking JsDoc indentation.
@@ -451,7 +451,7 @@ class IndentationRules(object):
       return False
     start_token = token
     while True:
-      token = token.next
+      token = token.__next__
       if not token or token.line_number != start_token.line_number:
         return True
       if token.type not in Type.NON_CODE_TYPES:
@@ -540,7 +540,7 @@ class IndentationRules(object):
             break
         if token_check.type == same_type:
           count += 1
-        token_check = token_check.next
+        token_check = token_check.__next__
     return token_info
 
   def _PopToImpliedBlock(self):

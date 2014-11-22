@@ -17,7 +17,7 @@
 
 __author__ = 'robbyw@google.com (Robby Walker)'
 
-import StringIO
+import io
 
 import gflags as flags
 import unittest as googletest
@@ -63,7 +63,7 @@ class FixJsStyleTest(googletest.TestCase):
                           'with a new line.' % (input_filename))
 
       # Autofix the file, sending output to a fake file.
-      actual = StringIO.StringIO()
+      actual = io.StringIO()
       runner.Run(input_filename, error_fixer.ErrorFixer(actual))
 
       # Now compare the files.
@@ -350,7 +350,7 @@ class FixJsStyleTest(googletest.TestCase):
       original = self._GetHeader() + original
       expected = self._GetHeader() + expected
 
-    actual = StringIO.StringIO()
+    actual = io.StringIO()
     runner.Run('testing.js', error_fixer.ErrorFixer(actual), original)
     actual.seek(0)
 

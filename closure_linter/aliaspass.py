@@ -167,7 +167,7 @@ class AliasPass(object):
     assert root_context.type is ecmametadatapass.EcmaContext.ROOT
 
     # Identify all goog.scope blocks.
-    goog_scope_blocks = itertools.ifilter(
+    goog_scope_blocks = filter(
         scopeutil.IsGoogScopeBlock,
         self._YieldAllContexts(root_context))
 
@@ -216,4 +216,4 @@ class AliasPass(object):
           if aliased_symbol:
             token.metadata.aliased_symbol = aliased_symbol
 
-      token = token.next  # Get next token
+      token = token.__next__  # Get next token

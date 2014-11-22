@@ -20,7 +20,7 @@ __author__ = ('robbyw@google.com (Robert Walker)',
               'ajp@google.com (Andy Perelson)')
 
 import copy
-import StringIO
+import io
 
 from closure_linter.common import tokens
 from closure_linter.javascripttokens import JavaScriptToken
@@ -71,7 +71,7 @@ def GetLastTokenInSameLine(token):
     The last token in the same line as token.
   """
   while not token.IsLastInLine():
-    token = token.next
+    token = token.__next__
   return token
 
 
@@ -90,7 +90,7 @@ def GetAllTokensInSameLine(token):
   tokens_in_line = []
   while first_token != last_token:
     tokens_in_line.append(first_token)
-    first_token = first_token.next
+    first_token = first_token.__next__
   tokens_in_line.append(last_token)
 
   return tokens_in_line
@@ -131,7 +131,7 @@ def CustomSearch(start_token, func, end_func=None, distance=None,
 
   else:
     while token and (distance is None or distance > 0):
-      next_token = token.next
+      next_token = token.__next__
       if next_token:
         if func(next_token):
           return next_token
@@ -223,15 +223,15 @@ def DeleteToken(token):
   # when its current token is deleted.
   token.is_deleted = True
   if token.previous:
-    token.previous.next = token.next
+    token.previous.next = token.__next__
 
-  if token.next:
+  if token.__next__:
     token.next.previous = token.previous
 
-    following_token = token.next
+    following_token = token.__next__
     while following_token and following_token.metadata.last_code == token:
       following_token.metadata.last_code = token.metadata.last_code
-      following_token = following_token.next
+      following_token = following_token.__next__
 
 
 def DeleteTokens(token, token_count):
@@ -241,8 +241,8 @@ def DeleteTokens(token, token_count):
     token: The token to start deleting at.
     token_count: The total number of tokens to delete.
   """
-  for i in xrange(1, token_count):
-    DeleteToken(token.next)
+  for i in range(1, token_count):
+    DeleteToken(token.__next__)
   DeleteToken(token)
 
 
@@ -264,7 +264,7 @@ def InsertTokenBefore(new_token, token):
     while (following_token and
            following_token.metadata.last_code == old_last_code):
       following_token.metadata.last_code = new_token
-      following_token = following_token.next
+      following_token = following_token.__next__
 
   token.previous = new_token
   if new_token.previous:
@@ -281,10 +281,10 @@ def InsertTokenBefore(new_token, token):
       else:
         new_token.start_index = 0
 
-    iterator = new_token.next
+    iterator = new_token.__next__
     while iterator and iterator.line_number == new_token.line_number:
       iterator.start_index += len(new_token.string)
-      iterator = iterator.next
+      iterator = iterator.__next__
 
 
 def InsertTokenAfter(new_token, token):
@@ -295,7 +295,7 @@ def InsertTokenAfter(new_token, token):
     token: A token already in the stream
   """
   new_token.previous = token
-  new_token.next = token.next
+  new_token.next = token.__next__
 
   new_token.metadata = copy.copy(token.metadata)
 
@@ -303,13 +303,13 @@ def InsertTokenAfter(new_token, token):
     new_token.metadata.last_code = token
 
   if new_token.IsCode():
-    following_token = token.next
+    following_token = token.__next__
     while following_token and following_token.metadata.last_code == token:
       following_token.metadata.last_code = new_token
-      following_token = following_token.next
+      following_token = following_token.__next__
 
   token.next = new_token
-  if new_token.next:
+  if new_token.__next__:
     new_token.next.previous = new_token
 
   if new_token.start_index is None:
@@ -318,10 +318,10 @@ def InsertTokenAfter(new_token, token):
     else:
       new_token.start_index = 0
 
-    iterator = new_token.next
+    iterator = new_token.__next__
     while iterator and iterator.line_number == new_token.line_number:
       iterator.start_index += len(new_token.string)
-      iterator = iterator.next
+      iterator = iterator.__next__
 
 
 def InsertTokensAfter(new_tokens, token):
@@ -380,10 +380,10 @@ def InsertLineAfter(token, new_tokens):
     insert_location = new_token
 
   # Update all subsequent line numbers.
-  next_token = new_tokens[-1].next
+  next_token = new_tokens[-1].__next__
   while next_token:
     next_token.line_number += 1
-    next_token = next_token.next
+    next_token = next_token.__next__
 
 
 def SplitToken(token, position):
@@ -441,7 +441,7 @@ def GoogScopeOrNoneFromStartBlock(token):
   #      5    4    3   21 ^
 
   maybe_goog_scope = token
-  for unused_i in xrange(5):
+  for unused_i in range(5):
     maybe_goog_scope = (maybe_goog_scope.previous if maybe_goog_scope and
                         maybe_goog_scope.previous else None)
   if maybe_goog_scope and maybe_goog_scope.string == 'goog.scope':
@@ -469,7 +469,7 @@ def GetTokenRange(start_token, end_token):
     if token == end_token:
       return token_range
 
-    token = token.next
+    token = token.__next__
 
 
 def TokensToString(token_iterable):
@@ -485,7 +485,7 @@ def TokensToString(token_iterable):
     A string representation of the given tokens.
   """
 
-  buf = StringIO.StringIO()
+  buf = io.StringIO()
   token_list = list(token_iterable)
   if not token_list:
     return ''
@@ -625,8 +625,8 @@ def GetIdentifierForToken(token):
   # Start with the first token
   symbol_tokens = [token]
 
-  if token.next:
-    for t in token.next:
+  if token.__next__:
+    for t in token.__next__:
       last_symbol_token = symbol_tokens[-1]
 
       # An identifier is part of the previous symbol if it has a trailing

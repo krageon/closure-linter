@@ -45,12 +45,12 @@ class AliasPassTest(googletest.TestCase):
     alias_pass.Process(start_token)
 
     alias_errors = error_accumulator.GetErrors()
-    self.assertEquals(1, len(alias_errors))
+    self.assertEqual(1, len(alias_errors))
 
     alias_error = alias_errors[0]
 
-    self.assertEquals(errors.INVALID_USE_OF_GOOG_SCOPE, alias_error.code)
-    self.assertEquals('goog.scope', alias_error.token.string)
+    self.assertEqual(errors.INVALID_USE_OF_GOOG_SCOPE, alias_error.code)
+    self.assertEqual('goog.scope', alias_error.token.string)
 
   def testAliasedIdentifiers(self):
     start_token = testutil.TokenizeSourceAndRunEcmaPass(_TEST_ALIAS_SCRIPT)
@@ -64,11 +64,11 @@ class AliasPassTest(googletest.TestCase):
     self.assertIsNone(my_class_token.metadata.aliased_symbol)
 
     component_token = _GetTokenByLineAndString(start_token, 'Component', 16)
-    self.assertEquals('goog.ui.Component',
+    self.assertEqual('goog.ui.Component',
                       component_token.metadata.aliased_symbol)
 
     event_token = _GetTokenByLineAndString(start_token, 'Event.Something', 16)
-    self.assertEquals('goog.events.Event.Something',
+    self.assertEqual('goog.events.Event.Something',
                       event_token.metadata.aliased_symbol)
 
     non_closurized_token = _GetTokenByLineAndString(
@@ -76,7 +76,7 @@ class AliasPassTest(googletest.TestCase):
     self.assertIsNone(non_closurized_token.metadata.aliased_symbol)
 
     long_start_token = _GetTokenByLineAndString(start_token, 'Event.', 20)
-    self.assertEquals('goog.events.Event.MultilineIdentifier.someMethod',
+    self.assertEqual('goog.events.Event.MultilineIdentifier.someMethod',
                       long_start_token.metadata.aliased_symbol)
 
   def testMultipleGoogScopeCalls(self):
@@ -92,19 +92,19 @@ class AliasPassTest(googletest.TestCase):
 
     alias_errors = error_accumulator.GetErrors()
 
-    self.assertEquals(3, len(alias_errors))
+    self.assertEqual(3, len(alias_errors))
 
     error = alias_errors[0]
-    self.assertEquals(errors.INVALID_USE_OF_GOOG_SCOPE, error.code)
-    self.assertEquals(7, error.token.line_number)
+    self.assertEqual(errors.INVALID_USE_OF_GOOG_SCOPE, error.code)
+    self.assertEqual(7, error.token.line_number)
 
     error = alias_errors[1]
-    self.assertEquals(errors.EXTRA_GOOG_SCOPE_USAGE, error.code)
-    self.assertEquals(7, error.token.line_number)
+    self.assertEqual(errors.EXTRA_GOOG_SCOPE_USAGE, error.code)
+    self.assertEqual(7, error.token.line_number)
 
     error = alias_errors[2]
-    self.assertEquals(errors.EXTRA_GOOG_SCOPE_USAGE, error.code)
-    self.assertEquals(11, error.token.line_number)
+    self.assertEqual(errors.EXTRA_GOOG_SCOPE_USAGE, error.code)
+    self.assertEqual(11, error.token.line_number)
 
 
 _TEST_ALIAS_SCRIPT = """
